@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shared>
+	<references>
+		<reference repository="rhjoerg/rhj-shared">
+			<targets>
+				<target repository="rhjoerg/rhj-settings-manager">
+					<entries>
+						<entry source="settings.xml" />
+					</entries>
+				</target>
+			</targets>
+			<entries>
+				<entry source="MANIFEST" destination="MANIFEST" />
+			</entries>
+		</reference>
+	</references>
+</shared>
