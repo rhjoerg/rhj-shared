@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shared>
+	<credentials username="${env.GITHUB_USERNAME}" password="${env.GITHUB_PASSWORD}" />
 	<references>
-		<reference repository="rhjoerg/rhj-shared">
+		<reference id="rhj-shared" git="https://github.com/rhjoerg/rhj-shared.git">
 			<targets>
-				<target repository="rhjoerg/rhj-settings-manager">
+				<target id="rhj-settings-manager" git="https://github.com/rhjoerg/rhj-settings-manager.git">
 					<entries>
 						<entry source="settings.xml" />
 					</entries>

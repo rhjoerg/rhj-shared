@@ -26,6 +26,9 @@ public class Main {
 
 		Config.config(Paths.get("shared.xml"));
 
+		if (true)
+			return;
+
 		File gitDir = Files.createDirectories(Paths.get("target", "git")).toFile();
 
 		String username = System.getenv("GITHUB_USERNAME");
