@@ -34,6 +34,8 @@ public class CommitAndPush implements Consumer<Target> {
 			git.commit().setMessage("rhj-shared " + Instant.now().toString()).call();
 			git.push().setCredentialsProvider(credentialsProvider(config.credentials(id))).call();
 
+			committedAndPushed.fire(new CommittedAndPushedEvent(target));
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
