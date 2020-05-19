@@ -2,7 +2,6 @@ package ch.rhj.shared;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -211,9 +210,6 @@ public class Config {
 
 	public static Config config(Path path) throws Exception {
 
-		byte[] src = Files.readAllBytes(Paths.get("shared.xml"));
-		XmlMapper mapper = new XmlMapper();
-
-		return mapper.readValue(src, Config.class).link();
+		return new XmlMapper().readValue(Files.readAllBytes(path), Config.class).link();
 	}
 }

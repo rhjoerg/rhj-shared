@@ -42,17 +42,19 @@ public class Main {
 
 	private static void onChangeAdded(ChangeAddedEvent event) {
 
-		System.out.println(event.diffEntry);
+		System.out.println(format("staged: %1$s ~ %2$s", event.target.id(), event.diffEntry.getNewPath()));
 	}
 
 	private static void onCommittedAndPushed(CommittedAndPushedEvent event) {
 
-		System.out.println(event.target);
+		System.out.println(format("committed and pushed: %1$s", event.target.id()));
 	}
 
 	public static void main(String[] args) throws Exception {
 
-		Config config = Config.config(Paths.get("shared.xml"));
+		String configFile = args.length == 0 ? "shared-config.xml" : args[0];
+
+		Config config = Config.config(Paths.get(configFile));
 		ProcessTarget processTarget = new ProcessTarget(config);
 
 		processTarget.cloneRepository.cloned.add(Main::onRepositoryCloned);

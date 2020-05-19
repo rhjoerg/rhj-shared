@@ -24,7 +24,7 @@ public class AddChanges implements Function<Target, Integer> {
 
 			List<DiffEntry> diffEntries = git.diff().call();
 
-			diffEntries.forEach(diffEntry -> addChange(git, diffEntry));
+			diffEntries.forEach(diffEntry -> addChange(git, target, diffEntry));
 			return diffEntries.size();
 
 		} catch (Exception e) {
@@ -32,7 +32,7 @@ public class AddChanges implements Function<Target, Integer> {
 		}
 	}
 
-	private void addChange(Git git, DiffEntry diffEntry) {
+	private void addChange(Git git, Target target, DiffEntry diffEntry) {
 
 		try {
 
@@ -41,7 +41,7 @@ public class AddChanges implements Function<Target, Integer> {
 			case ADD:
 			case MODIFY:
 				git.add().addFilepattern(diffEntry.getNewPath()).call();
-				added.fire(new ChangeAddedEvent(diffEntry));
+				added.fire(new ChangeAddedEvent(target, diffEntry));
 				break;
 
 			default:
