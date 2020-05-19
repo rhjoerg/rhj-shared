@@ -1,8 +1,7 @@
 package ch.rhj.shared;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.lang.String.format;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -11,68 +10,64 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.DosFileAttributeView;
-import java.time.Instant;
-import java.util.List;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import ch.rhj.shared.Config.Entry;
+import ch.rhj.shared.Config.Reference;
+import ch.rhj.shared.Config.Target;
+import ch.rhj.shared.actions.ProcessTarget;
+import ch.rhj.shared.events.ChangeAddedEvent;
+import ch.rhj.shared.events.CommittedAndPushedEvent;
+import ch.rhj.shared.events.FileUpdatedEvent;
+import ch.rhj.shared.events.RepositoryClonedEvent;
 
 public class Main {
 
-	public static void main(String[] args) throws Exception {
+	private static void onRepositoryCloned(RepositoryClonedEvent event) {
 
-		deleteGitDirectory();
-
-		Config.config(Paths.get("shared.xml"));
-
-		if (true)
-			return;
-
-		File gitDir = Files.createDirectories(Paths.get("target", "git")).toFile();
-
-		String username = System.getenv("GITHUB_USERNAME");
-		String password = System.getenv("GITHUB_PASSWORD");
-		UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
-		File directory = new File(gitDir, "rhj-settings-manager");
-
-		Git git = Git.cloneRepository().setCredentialsProvider(credentialsProvider).setDirectory(directory) //
-				.setURI("https://github.com/rhjoerg/rhj-settings-manager.git") //
-				.setBranch("master").call();
-
-		Path hello = directory.toPath().resolve("hello.txt");
-
-		if (Files.exists(hello)) {
-			Files.delete(hello);
-		}
-
-		Files.writeString(hello, "hello, world! " + Instant.now().toString(), UTF_8);
-
-		List<DiffEntry> diffEntries = git.diff().call();
-		for (DiffEntry diffEntry : diffEntries) {
-
-			switch (diffEntry.getChangeType()) {
-
-			case ADD:
-				git.add().addFilepattern(diffEntry.getNewPath()).call();
-				break;
-
-			case MODIFY:
-				git.add().addFilepattern(diffEntry.getNewPath()).call();
-				break;
-
-			default:
-				throw new UnsupportedOperationException();
-			}
-		}
-
-		git.commit().setMessage("rhj-shared " + Instant.now().toString()).call();
-		git.push().setCredentialsProvider(credentialsProvider).call();
+		System.out.println(format("cloned '%1$s@%2$s'", event.repository.id(), event.repository.branch()));
 	}
 
-	private static void deleteGitDirectory() throws Exception {
+	private static void onFileUpdated(FileUpdatedEvent event) {
 
-		Path start = Paths.get("target", "git");
+		Target target = event.target;
+		Reference reference = target.reference();
+		Entry entry = event.entry;
+
+		Path root = Paths.get(reference.config().directory());
+		Path srcPath = Utils.path(reference, entry.source());
+		Path dstPath = Utils.path(target, entry.destination());
+
+		System.out.println(format("updated %1$s -> %2$s", root.relativize(srcPath), root.relativize(dstPath)));
+	}
+
+	private static void onChangeAdded(ChangeAddedEvent event) {
+
+		System.out.println(event.diffEntry);
+	}
+
+	private static void onCommittedAndPushed(CommittedAndPushedEvent event) {
+
+		System.out.println(event.target);
+	}
+
+	public static void main(String[] args) throws Exception {
+
+		Config config = Config.config(Paths.get("shared.xml"));
+		ProcessTarget processTarget = new ProcessTarget(config);
+
+		processTarget.cloneRepository.cloned.add(Main::onRepositoryCloned);
+		processTarget.updateFiles.updated.add(Main::onFileUpdated);
+		processTarget.addChanges.added.add(Main::onChangeAdded);
+		processTarget.commitAndPush.committedAndPushed.add(Main::onCommittedAndPushed);
+
+		deleteDirectory(config);
+
+		config.references().flatMap(r -> r.targets()).forEach(processTarget);
+	}
+
+	private static void deleteDirectory(Config config) throws Exception {
+
+		Path start = Paths.get(config.directory());
 
 		if (!Files.exists(start))
 			return;

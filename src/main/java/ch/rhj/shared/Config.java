@@ -7,12 +7,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Config {
+
+	// ----------------------------------------------------------------------------------------------------------------
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Credentials {
@@ -32,6 +35,8 @@ public class Config {
 		}
 	}
 
+	// ----------------------------------------------------------------------------------------------------------------
+
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Entry {
 
@@ -50,14 +55,19 @@ public class Config {
 		}
 	}
 
+	// ----------------------------------------------------------------------------------------------------------------
+
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class Repository {
+	public static abstract class Repository {
 
 		@JsonProperty(value = "id", required = true)
 		private String id;
 
-		@JsonProperty(value = "git", required = true)
-		private String git;
+		@JsonProperty(value = "uri", required = true)
+		private String uri;
+
+		@JsonProperty(value = "branch")
+		private String branch;
 
 		@JsonProperty("credentials")
 		private Credentials credentials;
@@ -69,8 +79,12 @@ public class Config {
 			return id;
 		}
 
-		public String git() {
-			return git;
+		public String uri() {
+			return uri;
+		}
+
+		public String branch() {
+			return branch == null ? "master" : branch;
 		}
 
 		public Credentials credentials() {
@@ -80,22 +94,76 @@ public class Config {
 		public Stream<Entry> entries() {
 			return entries == null ? Stream.empty() : entries.stream();
 		}
+
+		public abstract Config config();
 	}
+
+	// ----------------------------------------------------------------------------------------------------------------
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Target extends Repository {
+
+		@JsonIgnore
+		private Reference reference;
+
+		public Reference reference() {
+			return reference;
+		}
+
+		@Override
+		public Stream<Entry> entries() {
+
+			return Stream.concat(super.entries(), reference.entries());
+		}
+
+		@Override
+		public Config config() {
+			return reference.config();
+		}
+
+		protected void link(Reference reference) {
+
+			this.reference = reference;
+		}
 	}
+
+	// ----------------------------------------------------------------------------------------------------------------
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Reference extends Repository {
 
+		@JsonIgnore
+		private Config config;
+
 		@JsonProperty("targets")
 		private List<Target> targets;
+
+		@Override
+		public Config config() {
+			return config;
+		}
 
 		public Stream<Target> targets() {
 			return targets == null ? Stream.empty() : targets.stream();
 		}
+
+		@Override
+		public Stream<Entry> entries() {
+			return Stream.concat(super.entries(), config.entries());
+		}
+
+		protected void link(Config config) {
+
+			this.config = config;
+
+			targets().forEach(t -> t.link(this));
+		}
 	}
+
+	// ----------------------------------------------------------------------------------------------------------------
+
+	@JsonProperty("directory")
+	private String directory;
 
 	@JsonProperty("credentials")
 	private Credentials credentials;
@@ -103,8 +171,15 @@ public class Config {
 	@JsonProperty("references")
 	private List<Reference> references;
 
+	@JsonProperty("entries")
+	private List<Entry> entries;
+
+	public String directory() {
+		return directory == null ? "repositories" : directory;
+	}
+
 	public Credentials credentials() {
-		return credentials();
+		return credentials;
 	}
 
 	public Credentials credentials(String id) {
@@ -123,11 +198,22 @@ public class Config {
 		return references == null ? Stream.empty() : references.stream();
 	}
 
+	public Stream<Entry> entries() {
+		return entries == null ? Stream.empty() : entries.stream();
+	}
+
+	protected Config link() {
+
+		references().forEach(r -> r.link(this));
+
+		return this;
+	}
+
 	public static Config config(Path path) throws Exception {
 
 		byte[] src = Files.readAllBytes(Paths.get("shared.xml"));
 		XmlMapper mapper = new XmlMapper();
 
-		return mapper.readValue(src, Config.class);
+		return mapper.readValue(src, Config.class).link();
 	}
 }

@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shared>
+
+<config directory="target/repositories">
 	<credentials username="${env.GITHUB_USERNAME}" password="${env.GITHUB_PASSWORD}" />
 	<references>
-		<reference id="rhj-shared" git="https://github.com/rhjoerg/rhj-shared.git">
+		<reference id="rhj-shared" uri="https://github.com/rhjoerg/rhj-shared.git">
 			<targets>
-				<target id="rhj-settings-manager" git="https://github.com/rhjoerg/rhj-settings-manager.git">
+				<target id="rhj-settings-manager" uri="https://github.com/rhjoerg/rhj-settings-manager.git" branch="master">
 					<entries>
 						<entry source="settings.xml" />
 					</entries>
 				</target>
 			</targets>
 			<entries>
-				<entry source="MANIFEST" destination="MANIFEST" />
+				<entry source="LICENSE" destination="LICENSE" />
 			</entries>
 		</reference>
 	</references>
-</shared>
+</config>
