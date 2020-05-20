@@ -41,7 +41,7 @@ public class CloneRepository implements Function<Repository, Git> {
 
 			Git git = Git.cloneRepository() //
 					.setBranch(repository.branch()) //
-					.setCredentialsProvider(credentialsProvider(config.credentials(id))) //
+					.setCredentialsProvider(credentialsProvider(repository.credentials())) //
 					.setDirectory(directory(id)) //
 					.setURI(repository.uri()) //
 					.call();

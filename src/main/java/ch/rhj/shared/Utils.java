@@ -6,11 +6,12 @@ import java.nio.file.Paths;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import ch.rhj.shared.Config.Credentials;
 import ch.rhj.shared.Config.Repository;
 
 public interface Utils {
 
-	public static CredentialsProvider credentialsProvider(Config.Credentials source) {
+	public static CredentialsProvider credentialsProvider(Credentials source) {
 
 		String username = resolveCredential(source.username());
 		String password = resolveCredential(source.password());

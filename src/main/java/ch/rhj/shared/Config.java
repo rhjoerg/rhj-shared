@@ -3,7 +3,6 @@ package ch.rhj.shared;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -69,7 +68,7 @@ public class Config {
 		private String branch;
 
 		@JsonProperty("credentials")
-		private Credentials credentials;
+		protected Credentials credentials;
 
 		@JsonProperty("entries")
 		private List<Entry> entries;
@@ -87,7 +86,7 @@ public class Config {
 		}
 
 		public Credentials credentials() {
-			return credentials;
+			return credentials == null ? config().credentials() : credentials;
 		}
 
 		public Stream<Entry> entries() {
@@ -179,18 +178,6 @@ public class Config {
 
 	public Credentials credentials() {
 		return credentials;
-	}
-
-	public Credentials credentials(String id) {
-
-		Optional<Credentials> credentials;
-
-		credentials = references().filter(r -> r.id().equals(id)).findFirst().map(r -> r.credentials());
-
-		if (credentials.isEmpty())
-			credentials = references().flatMap(r -> r.targets()).filter(t -> t.id().equals(id)).findFirst().map(t -> t.credentials());
-
-		return credentials.orElse(credentials());
 	}
 
 	public Stream<Reference> references() {

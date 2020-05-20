@@ -32,7 +32,7 @@ public class CommitAndPush implements Consumer<Target> {
 			Git git = Gits.get(id);
 
 			git.commit().setMessage("rhj-shared " + Instant.now().toString()).call();
-			git.push().setCredentialsProvider(credentialsProvider(config.credentials(id))).call();
+			git.push().setCredentialsProvider(credentialsProvider(target.credentials())).call();
 
 			committedAndPushed.fire(new CommittedAndPushedEvent(target));
 
