@@ -10,6 +10,7 @@
 		<reference id="rhj-shared" uri="https://github.com/rhjoerg/rhj-shared.git">
 			<targets>
 				<target id="rhj-eclipse-tools" uri="https://github.com/rhjoerg/rhj-eclipse-tools.git" />
+				<target id="rhj-images" uri="https://github.com/rhjoerg/rhj-images.git" />
 				<target id="rhj-java-dependencies" uri="https://github.com/rhjoerg/rhj-java-dependencies.git" />
 				<target id="rhj-java-parent" uri="https://github.com/rhjoerg/rhj-java-parent.git" />
 			</targets>
